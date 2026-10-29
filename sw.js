@@ -11,7 +11,7 @@
  *  (v1 -> v2), за да се изхвърли старият кеш.
  */
 
-var CACHE = 'trace-demo-v1';
+var CACHE = 'trace-demo-v2';
 
 var SHELL = [
   './',

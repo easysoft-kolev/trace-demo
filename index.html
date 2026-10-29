@@ -414,6 +414,24 @@
   .home-logo{width:34%!important;max-width:132px!important}
   .login-logo div{width:24%!important;max-width:96px!important}
   .topbar img{width:104px!important}
+
+  /* ---------- Личен демо линк ---------- */
+  .hint{border-radius:14px;padding:11px 13px;margin-bottom:16px;text-align:center;font:500 12.5px/1.45 'Golos Text',sans-serif;
+        background:rgba(45,212,191,.06);border:1px dashed rgba(45,212,191,.35);color:rgba(167,243,232,.85)}
+  .hint b{color:#eafffb;font-weight:700}
+  a.chip{text-decoration:none}
+  .topbar .right{display:flex;gap:8px;flex:none}
+  .pill span:last-child{max-width:72vw;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .client-note{display:none;margin:12px 0 0;border-radius:14px;padding:11px 13px;text-align:center;
+        font:500 12px/1.5 'Golos Text',sans-serif;background:rgba(45,212,191,.06);border:1px solid rgba(45,212,191,.22);color:rgba(167,243,232,.8)}
+  .client-note a{color:#5eead4;font-weight:700}
+  .client-note.show{display:block}
+  .topbar .mode span:last-child{white-space:nowrap}
+  @media (max-width:430px){
+    .topbar img{width:74px!important}
+    .topbar .chip{padding:8px 9px}
+    .topbar .right{gap:6px}
+  }
 </style>
 </head>
 <body>
@@ -469,6 +487,7 @@
           Няма връзка с базата данни. Записите ще се пазят само до затваряне на страницата.
         </div>
         <div class="error" id="loginError"></div>
+        <div class="hint" id="demoHint">Демо достъп: потребител <b>demo</b> · парола <b>demo</b></div>
 
         <div class="field">
           <label for="username">Потребителско име</label>
@@ -499,13 +518,17 @@
         <div class="mode"><span class="led" id="modeLed"></span><span id="appMode">Локален режим</span></div>
       </div>
     </div>
-    <button class="chip chip-danger" id="logoutBtn">Изход</button>
+    <div class="right">
+      <a class="chip" id="sheetBtn" target="_blank" rel="noopener" style="display:none">Таблица ↗</a>
+      <button class="chip chip-danger" id="logoutBtn">Изход</button>
+    </div>
   </div>
 
   <div class="stats">
     <div class="stat km"><div class="v" id="totalKm">0</div><div class="l">Общо км</div><span class="glow"></span></div>
     <div class="stat logs"><div class="v" id="totalLogs">0</div><div class="l">Записи</div><span class="glow"></span></div>
   </div>
+  <div class="client-note" id="clientNote"></div>
 
   <div class="card">
     <div class="scanwrap"><span class="scan"></span></div>
@@ -620,6 +643,15 @@ var API_URL = "https://script.google.com/macros/s/AKfycbzUg0u2JkH_pDqmLzurQIvzGN
 /* Резервен вход, важи САМО докато API_URL е празен. */
 var LOCAL_USERS = { "demo": "demo" };
 
+/* Личен демо линк: ...trace-demo/?k=КЛЮЧ -> отделна таблица за всеки клиент. */
+var clientKey = (function () {
+  var m = String(location.search).match(/[?&]k=([A-Za-z0-9-]{3,60})/);
+  return m ? m[1].toLowerCase() : "";
+})();
+var sheetUrl = "";
+var sessionError = "";
+var sessionBusy = false;
+
 /* ================== оттук надолу не се пипа ================== */
 
 var online = false;
@@ -655,11 +687,12 @@ function go(name) {
 
 function modeLabel() {
   if (!API_URL) { return "Локален режим"; }
+  if (online && clientKey) { return "Лично демо"; }
   return online ? "Свързан с базата" : "Готов за връзка";
 }
 
 function paintMode() {
-  $("homeMode").textContent = modeLabel();
+  $("homeMode").textContent = (online && clientKey) ? "Демо за " + currentUser : modeLabel();
   $("appMode").textContent = modeLabel();
   $("modeLed").style.background = online ? "#2dd4bf" : "#fbbf24";
 }
@@ -1006,6 +1039,61 @@ function busy(btnId, on, label) {
   lbl.appendChild(document.createTextNode(label));
 }
 
+/* ---------- Личен демо линк ---------- */
+function startSession(openApp) {
+  if (!API_URL || !clientKey || sessionBusy) { return; }
+  sessionBusy = true;
+  sessionError = "";
+  busy("startBtn", true, "Подготвяме демото…");
+  $("homeMode").textContent = "Подготвяме вашата таблица…";
+
+  api({ action: "session", key: clientKey }).then(function (res) {
+    sessionBusy = false;
+    busy("startBtn", false, "Въведи маршрут");
+    if (res && res.ok) {
+      token = res.token;
+      online = true;
+      loggedIn = true;
+      currentUser = res.company || "Демо";
+      sheetUrl = res.sheetUrl || "";
+      logs = res.rows || [];
+      $("whoLabel").textContent = currentUser;
+      document.title = "TRACE — демо за " + currentUser;
+      if (sheetUrl) {
+        $("sheetBtn").href = sheetUrl;
+        $("sheetBtn").style.display = "";
+        show("clientNote", "Това демо е само за вас. Всеки курс отива в отделна " +
+          "<a href=\"" + sheetUrl + "\" target=\"_blank\" rel=\"noopener\">Google Таблица</a>, която никой друг клиент не вижда.");
+      }
+      paintMode();
+      render();
+      if (openApp) { go("app"); }
+    } else {
+      sessionError = (res && res.error) ? res.error : "Демото не можа да се зареди.";
+      paintMode();
+      if (openApp) { openLoginWithError(); }
+    }
+  }).catch(function (err) {
+    sessionBusy = false;
+    busy("startBtn", false, "Въведи маршрут");
+    sessionError = err.message + " Опитайте отново след минута.";
+    paintMode();
+    if (openApp) { openLoginWithError(); }
+  });
+}
+
+function openLoginWithError() {
+  go("login");
+  show("loginError", sessionError);
+}
+
+function onStart() {
+  if (!clientKey || !API_URL) { go("login"); return; }
+  if (loggedIn) { go("app"); return; }
+  if (sessionBusy) { return; }
+  startSession(true);
+}
+
 /* ---------- Вход ---------- */
 function doLogin() {
   if ($("loginBtn").disabled) { return; }
@@ -1068,6 +1156,9 @@ function doLogout() {
   logs = [];
   pendingDelete = null;
   online = false;
+  sheetUrl = "";
+  $("sheetBtn").style.display = "none";
+  hide("clientNote");
   paintMode();
   render();
   go("home");
@@ -1343,7 +1434,7 @@ function bind(id, event, fn) {
   if (el) { el.addEventListener(event, fn); }
 }
 
-bind("startBtn", "click", function () { go("login"); });
+bind("startBtn", "click", onStart);
 bind("loginBtn", "click", doLogin);
 bind("loginBackBtn", "click", function () { go("home"); });
 bind("logoutBtn", "click", doLogout);
@@ -1370,6 +1461,7 @@ renderStops();
 updatePreview();
 render();
 go("home");
+if (clientKey && API_URL) { startSession(false); }
 window.__ready = true;
 
 /* ---------- Инсталиране на телефон (PWA) ----------
