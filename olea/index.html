@@ -1,0 +1,491 @@
+<!doctype html>
+<html lang="bg">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Олеа QR меню</title>
+<meta name="robots" content="noindex, nofollow">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Prata&family=Golos+Text:wght@400;500;600&display=swap">
+<style>
+/* Layout: a phone-first menu card — limestone page, olive ink, a sticky row of course tabs, dishes set like a printed menu with dotted leaders to the portion weight. */
+:root {
+  --bg: #f2f3ec;          /* limestone with an olive bias */
+  --surface: #fbfbf7;
+  --ink: #1d2419;
+  --muted: #5f6857;
+  --line: #d5d9c8;
+  --olive: #56622a;
+  --olive-soft: #e3e7cf;
+  --sea: #2c6772;
+  --sea-soft: #dcebec;
+  --amber: #8a5a12;
+  --amber-soft: #f3e6cc;
+  --ribbon: #1d2419;
+  --ribbon-ink: #eef0e4;
+  --font-display: "Prata", "Georgia", "Times New Roman", serif;
+  --font-body: "Golos Text", "Segoe UI", "Helvetica Neue", Arial, sans-serif;
+  color-scheme: light;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #12160f; --surface: #191e15; --ink: #e7eadc; --muted: #a2aa93; --line: #313a29;
+    --olive: #b9c77d; --olive-soft: #2a3220; --sea: #8cc5cd; --sea-soft: #1d3034;
+    --amber: #e3b56a; --amber-soft: #382c17; --ribbon: #e7eadc; --ribbon-ink: #12160f;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #12160f; --surface: #191e15; --ink: #e7eadc; --muted: #a2aa93; --line: #313a29;
+  --olive: #b9c77d; --olive-soft: #2a3220; --sea: #8cc5cd; --sea-soft: #1d3034;
+  --amber: #e3b56a; --amber-soft: #382c17; --ribbon: #e7eadc; --ribbon-ink: #12160f;
+  color-scheme: dark;
+}
+
+* { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; }
+:root { padding-top: env(safe-area-inset-top, 0px); padding-bottom: env(safe-area-inset-bottom, 0px); }
+body {
+  margin: 0; background: var(--bg); color: var(--ink);
+  font-family: var(--font-body); font-size: 15px; line-height: 1.5;
+}
+body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-area-inset-top, 0px); z-index: 10; background: var(--bg); }
+[hidden] { display: none !important; }
+button, input { font: inherit; color: inherit; }
+:focus-visible { outline: 2px solid var(--sea); outline-offset: 2px; }
+
+.gutter {
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+}
+.col { max-width: 640px; margin: 0 auto; }
+
+/* demo ribbon */
+.ribbon { background: var(--ribbon); color: var(--ribbon-ink); font-size: 12.5px; line-height: 1.45; }
+.ribbon .col { padding-block: 9px; display: flex; gap: 10px; align-items: baseline; }
+.ribbon b { letter-spacing: .08em; text-transform: uppercase; font-size: 11px; font-weight: 600; flex: none; }
+
+/* masthead */
+.mast .col { padding-block: 28px 18px; display: grid; gap: 14px; }
+.mast-top { display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; }
+.eyebrow { font-size: 11.5px; letter-spacing: .14em; text-transform: uppercase; color: var(--muted); font-weight: 500; }
+h1 { font-family: var(--font-display); font-weight: 400; font-size: clamp(44px, 13vw, 64px); line-height: .95; margin: 0; letter-spacing: .01em; text-wrap: balance; }
+.lede { margin: 0; color: var(--muted); max-width: 46ch; }
+.tools { display: flex; gap: 8px; align-items: center; }
+.seg { display: inline-flex; border: 1px solid var(--line); border-radius: 999px; padding: 2px; background: var(--surface); }
+.seg button { border: 0; background: none; padding: 5px 11px; border-radius: 999px; font-size: 13px; font-weight: 500; cursor: pointer; color: var(--muted); }
+.seg button[aria-pressed="true"] { background: var(--ink); color: var(--bg); }
+.qr-btn { border: 1px solid var(--ink); background: var(--ink); color: var(--bg); border-radius: 999px; padding: 6px 14px; font-size: 13px; font-weight: 500; cursor: pointer; display: inline-flex; gap: 7px; align-items: center; }
+.qr-btn svg { width: 15px; height: 15px; }
+
+.find { display: grid; gap: 10px; }
+.search { width: 100%; border: 1px solid var(--line); background: var(--surface); border-radius: 12px; padding: 11px 14px; font-size: 15px; }
+.search::placeholder { color: var(--muted); }
+.chips { display: flex; gap: 6px; flex-wrap: wrap; }
+.chip { border: 1px solid var(--line); background: var(--surface); border-radius: 999px; padding: 5px 12px; font-size: 13px; cursor: pointer; color: var(--ink); }
+.chip[aria-pressed="true"] { border-color: var(--olive); background: var(--olive-soft); color: var(--olive); font-weight: 600; }
+
+/* sticky course tabs */
+.tabs { position: sticky; top: env(safe-area-inset-top, 0px); z-index: 5; background: var(--bg); border-bottom: 1px solid var(--line); }
+.tabs-scroll { overflow-x: auto; scrollbar-width: none; }
+.tabs-scroll::-webkit-scrollbar { display: none; }
+.tabs ul { list-style: none; margin: 0 auto; padding: 0; display: flex; gap: 2px; max-width: 640px; }
+.tabs a { display: block; white-space: nowrap; padding: 11px 10px 10px; font-size: 13.5px; color: var(--muted); text-decoration: none; border-bottom: 2px solid transparent; }
+.tabs a[aria-current="true"] { color: var(--ink); border-bottom-color: var(--olive); font-weight: 600; }
+
+/* menu */
+main .col { padding-block: 8px 24px; }
+.course { padding-top: 26px; scroll-margin-top: calc(env(safe-area-inset-top, 0px) + 52px); }
+.course h2 { font-family: var(--font-display); font-weight: 400; font-size: 26px; margin: 0 0 2px; text-wrap: balance; }
+.course .note { margin: 0 0 6px; color: var(--muted); font-size: 13.5px; }
+.dishes { display: grid; }
+.dish { padding: 13px 0; border-bottom: 1px solid var(--line); display: grid; gap: 4px; }
+.dish:last-child { border-bottom: 0; }
+.row { display: flex; align-items: baseline; gap: 8px; min-width: 0; }
+.dish h3 { margin: 0; font-size: 15.5px; font-weight: 600; line-height: 1.35; min-width: 0; }
+.leader { flex: 1 1 24px; min-width: 18px; border-bottom: 1.5px dotted var(--line); transform: translateY(-4px); }
+.meta { flex: none; display: flex; gap: 10px; align-items: baseline; font-variant-numeric: tabular-nums; }
+.grams { color: var(--muted); font-size: 13px; }
+.price { font-weight: 600; font-size: 14px; color: var(--muted); }
+.desc { margin: 0; color: var(--muted); font-size: 13.5px; max-width: 58ch; }
+.tags { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 2px; }
+.tag { font-size: 11px; letter-spacing: .04em; text-transform: uppercase; font-weight: 600; padding: 2px 8px; border-radius: 999px; }
+.tag.sea { background: var(--sea-soft); color: var(--sea); }
+.tag.veg { background: var(--olive-soft); color: var(--olive); }
+.tag.aged { background: var(--amber-soft); color: var(--amber); }
+.callout { font-size: 13px; color: var(--amber); font-weight: 500; }
+.empty { padding: 40px 0; text-align: center; color: var(--muted); }
+
+/* for the restaurant */
+.owner { border-top: 1px solid var(--line); background: var(--surface); }
+.owner .col { padding-block: 28px 36px; display: grid; gap: 16px; }
+.owner h2 { font-family: var(--font-display); font-weight: 400; font-size: 24px; margin: 0; }
+.owner ol { margin: 0; padding: 0; list-style: none; display: grid; gap: 12px; counter-reset: s; }
+.owner li { display: grid; grid-template-columns: 28px 1fr; gap: 10px; align-items: start; min-width: 0; }
+.owner li::before { counter-increment: s; content: counter(s); width: 26px; height: 26px; border-radius: 50%; border: 1px solid var(--olive); color: var(--olive); display: grid; place-items: center; font-size: 13px; font-weight: 600; }
+.owner li p { margin: 0; }
+.owner li strong { display: block; }
+.owner .sig { color: var(--muted); font-size: 13.5px; }
+.owner .sig span { user-select: all; color: var(--ink); }
+
+/* QR table card sheet */
+.sheet { position: fixed; inset: 0; z-index: 20; background: color-mix(in srgb, var(--ink) 45%, transparent); display: grid; place-items: center;
+  padding: max(16px, env(safe-area-inset-top, 0px)) max(16px, env(safe-area-inset-right, 0px)) max(16px, env(safe-area-inset-bottom, 0px)) max(16px, env(safe-area-inset-left, 0px)); }
+.card { background: var(--surface); color: var(--ink); width: min(340px, 100%); border-radius: 18px; padding: 26px 22px 20px; display: grid; gap: 12px; justify-items: center; text-align: center; box-shadow: 0 20px 60px rgba(0,0,0,.25); }
+.card .eyebrow { margin: 0; }
+.card h3 { font-family: var(--font-display); font-weight: 400; font-size: 34px; margin: 0; line-height: 1; }
+.qr-box { background: #ffffff; padding: 12px; border-radius: 10px; width: 196px; height: 196px; display: grid; place-items: center; }
+.qr-box img, .qr-box canvas { display: block; width: 172px !important; height: 172px !important; }
+.qr-msg { font-size: 12.5px; color: #4a4f44; padding: 8px; }
+.card .scan { margin: 0; font-size: 14px; }
+.card .small { margin: 0; font-size: 12px; color: var(--muted); max-width: 30ch; }
+.card .close { border: 1px solid var(--line); background: none; border-radius: 999px; padding: 6px 16px; cursor: pointer; font-size: 13px; }
+
+@media (prefers-reduced-motion: no-preference) {
+  html { scroll-behavior: smooth; }
+}
+</style>
+</head>
+<body>
+
+<div class="ribbon gutter" role="note">
+  <div class="col"><b id="t-demo">Демо</b><span id="t-ribbon"></span></div>
+</div>
+
+<header class="mast gutter">
+  <div class="col">
+    <div class="mast-top">
+      <span class="eyebrow" id="t-eyebrow"></span>
+      <div class="tools">
+        <div class="seg" role="group" aria-label="Език / Language">
+          <button type="button" id="lang-bg" data-lang="bg">БГ</button>
+          <button type="button" id="lang-en" data-lang="en">EN</button>
+        </div>
+        <button type="button" class="qr-btn" id="qr-open" aria-haspopup="dialog">
+          <svg viewBox="0 0 16 16" aria-hidden="true"><path fill="currentColor" d="M1 1h6v6H1V1zm1.5 1.5v3h3v-3h-3zM9 1h6v6H9V1zm1.5 1.5v3h3v-3h-3zM1 9h6v6H1V9zm1.5 1.5v3h3v-3h-3zM9 9h2v2H9V9zm2 2h2v2h-2v-2zm2-2h2v2h-2V9zm-4 4h2v2H9v-2zm4 0h2v2h-2v-2z"/></svg>
+          <span id="t-qr">QR за масата</span>
+        </button>
+      </div>
+    </div>
+    <h1 id="t-name">Олеа</h1>
+    <p class="lede" id="t-lede"></p>
+    <div class="find">
+      <label for="q" class="eyebrow" id="t-search-label" hidden>Търсене</label>
+      <input id="q" class="search" type="search" autocomplete="off">
+      <div class="chips" id="chips" role="group"></div>
+    </div>
+  </div>
+</header>
+
+<nav class="tabs gutter" aria-label="Раздели">
+  <div class="tabs-scroll"><ul id="tabs"></ul></div>
+</nav>
+
+<main class="gutter"><div class="col" id="menu"></div></main>
+
+<section class="owner gutter" aria-labelledby="t-owner-h">
+  <div class="col">
+    <h2 id="t-owner-h"></h2>
+    <ol id="owner-list"></ol>
+    <p class="sig" id="t-sig"></p>
+  </div>
+</section>
+
+<div class="sheet" id="sheet" hidden>
+  <div class="card" role="dialog" aria-modal="true" aria-labelledby="t-card-name">
+    <p class="eyebrow" id="t-card-eyebrow"></p>
+    <h3 id="t-card-name">Олеа</h3>
+    <div class="qr-box" id="qr-box"></div>
+    <p class="scan" id="t-scan"></p>
+    <p class="small" id="t-card-small"></p>
+    <button type="button" class="close" id="qr-close"></button>
+  </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<script>
+(function () {
+  "use strict";
+
+  var UI = {
+    bg: {
+      demo: "Демо",
+      ribbon: "Пример от easy soft, не е официалното меню на ресторанта. Ястията и грамажите са от менюто на сайта им; цените и снимките се попълват от ресторанта.",
+      eyebrow: "БМ ресторанти · Варна",
+      name: "Олеа",
+      lede: "Средиземноморска кухня и зеленчуци от собствената градина на ресторантите от 2012 г.",
+      search: "Търсете ястие или съставка",
+      qr: "QR за масата",
+      all: "Всичко", sea: "Риба и морски дарове", veg: "Вегетарианско", aged: "Зряло месо",
+      tagSea: "морско", tagVeg: "вег.", tagAged: "50 дни зреене",
+      grams: " г",
+      empty: "Няма ястие, което да отговаря на „{q}“.",
+      ownerH: "Как го поддържате вие",
+      owner: [
+        ["Сменяте цена или ястие от телефона", "Промяната е на всички маси веднага, без нов печат и без PDF."],
+        ["Маркирате „днес няма“ с едно докосване", "Гостът не поръчва нещо, което кухнята вече е свършила."],
+        ["Едно меню за четирите ресторанта", "Олеа, Сити, Градината и Залива – общи ястия се сменят на едно място."],
+        ["Български и английски", "Гостът сам избира езика; описанията са преведени веднъж."]
+      ],
+      sig: "Демото е направено от easy soft · Иво Колев · ",
+      cardEyebrow: "Маса 12",
+      scan: "Сканирайте с камерата на телефона, за да видите менюто.",
+      cardSmall: "Примерна карта за масата. Кодът води към адреса, на който е отворена тази страница.",
+      cardLocal: "Страницата е отворена от файл. Качете я на адрес в интернет и кодът ще води натам.",
+      close: "Затвори",
+      catch: "Питайте сервитьора за улова днес."
+    },
+    en: {
+      demo: "Demo",
+      ribbon: "A sample by easy soft, not the restaurant's official menu. Dishes and portions are from the menu on their website; prices and photos are added by the restaurant.",
+      eyebrow: "BM Restaurants · Varna",
+      name: "Olea",
+      lede: "Mediterranean cooking with vegetables from the restaurants' own garden since 2012.",
+      search: "Search for a dish or ingredient",
+      qr: "Table QR",
+      all: "All", sea: "Fish & seafood", veg: "Vegetarian", aged: "Dry-aged beef",
+      tagSea: "seafood", tagVeg: "veg.", tagAged: "50-day aged",
+      grams: " g",
+      empty: "No dish matches “{q}”.",
+      ownerH: "How the restaurant keeps it up to date",
+      owner: [
+        ["Change a price or a dish from your phone", "It shows on every table at once, with no reprint and no PDF."],
+        ["Mark “sold out today” with one tap", "Guests don't order what the kitchen has already run out of."],
+        ["One menu for all four restaurants", "Olea, City, The Garden and The Bay share dishes that change in one place."],
+        ["Bulgarian and English", "Guests pick their language; descriptions are translated once."]
+      ],
+      sig: "Demo made by easy soft · Ivo Kolev · ",
+      cardEyebrow: "Table 12",
+      scan: "Scan with your phone camera to see the menu.",
+      cardSmall: "Sample table card. The code points to the address this page is open at.",
+      cardLocal: "This page is open from a file. Put it online and the code will point there.",
+      close: "Close",
+      catch: "Ask your waiter about today's catch."
+    }
+  };
+
+  // [bg name, en name, bg description, en description, grams, tags, flag]
+  var MENU = [
+    { id: "start", bg: "За начало", en: "To start", items: [
+      ["Хрупкави скариди с пикантен сос", "Crispy shrimp with spicy sauce", "", "", 180, ["sea"]],
+      ["Маслена риба с аспержи, пюре от целина и зелена ябълка", "Butterfish with asparagus, celeriac purée and green apple", "", "", 350, ["sea"]],
+      ["Риба тон татаки с трюфелова майонеза", "Tuna tataki with truffle mayonnaise", "", "", 130, ["sea"]],
+      ["Тартар от риба тон", "Tuna tartare", "", "", 200, ["sea"]],
+      ["Салата Дакос", "Dakos salad", "Домати, каперси, маслини, червен лук, критски хляб, сирене, риган, магданоз", "Tomatoes, capers, olives, red onion, Cretan bread, cheese, oregano, parsley", 380, ["veg"]],
+      ["Печен патладжан с критски рожков хляб", "Roasted eggplant with Cretan carob bread", "Критски хляб, печен патладжан, пресни чушки, мус от сирене, сос от босилек", "Cretan bread, roasted eggplant, fresh pepper, cheese mousse, basil sauce", 300, ["veg"]],
+      ["Стек от карфиол с мисо хумус и хрупкави лешници", "Cauliflower steak with miso hummus and crispy hazelnuts", "", "", 250, ["veg"]]
+    ]},
+    { id: "salads", bg: "Салати", en: "Salads", items: [
+      ["Домати с маринована тиквичка и патладжан", "Tomatoes with marinated zucchini and eggplant", "Домати, маринован патладжан, тиквички, моцарела, рукола, чесън, дресинг", "Tomatoes, marinated eggplant, zucchini, mozzarella, arugula, garlic, dressing", 450, ["veg"]],
+      ["Салата Олеа", "Olea salad", "Домати, мус от сирене и орехи, печена чушка, краставица, печен патладжан, маслини, магданоз, домашни сушени меса, хрупкав хляб", "Tomatoes, cheese and walnut mousse, roasted pepper, cucumber, roasted eggplant, olives, parsley, house-made cured meats, crispy bread", 350, []],
+      ["Зелена салата с манго и скариди", "Mixed greens with mango and shrimp", "Зелени салати, манго, авокадо, скариди, пресни чушки, ягоди, дресинг от манго", "Mixed greens, mango, avocado, shrimp, fresh pepper, strawberries, mango dressing", 300, ["sea"]],
+      ["Зелена салата със скариди, авокадо, пармезан и песто", "Green salad with shrimp, avocado, parmesan and pesto", "", "", 230, ["sea"]],
+      ["Танго с козе сирене", "Tango with goat cheese", "Зелени салати, бейби спанак, рукола, козе сирене, сезонни плодове, лешници, сушени плодове, хрупкаво прошуто, редукция от малини", "Mixed greens, baby spinach, arugula, goat cheese, seasonal fruit, hazelnuts, dried fruit, prosciutto crisps, raspberry reduction", 280, []],
+      ["Зелена салата с рулца от сьомга", "Green salad with salmon rolls", "Зелена салата, чери домати, пушена сьомга, крема сирене, сусам, дресинг", "Green salad, cherry tomatoes, smoked salmon, cream cheese, sesame, dressing", 320, ["sea"]],
+      ["Средиземноморска салата", "Mediterranean salad", "Домати, октопод, калмари, маслини, каперси, лук, магданоз, дресинг", "Tomatoes, octopus, calamari, olives, capers, onion, parsley, dressing", 400, ["sea"]],
+      ["Бурата с розови домати и песто", "Burrata with pink tomatoes and pesto", "Домати, бурата, рукола, песто от босилек", "Tomatoes, burrata, arugula, basil pesto", 390, ["veg"]],
+      ["Зелена салата с риба тон татаки", "Green salad with tuna tataki", "Зелени салати, риба тон, сусам, чери домати, авокадо, пармезан, дресинг със соев сос", "Mixed greens, tuna, sesame, cherry tomatoes, avocado, parmesan, soy sauce dressing", 300, ["sea"]],
+      ["Салата Цезар", "Caesar salad", "Зелена салата, айсберг, чери домати, пилешко, аншоа, пармезан, крутони, пресен лук, дресинг Цезар", "Green salad, iceberg, cherry tomatoes, chicken, anchovies, parmesan, croutons, spring onion, Caesar dressing", 300, []]
+    ]},
+    { id: "spreads", bg: "Предястия и разядки", en: "Appetizers & spreads", items: [
+      ["Домашен тарама хайвер", "Homemade whipped tarama", "", "", 150, ["sea"]],
+      ["Рулца от сьомга", "Salmon rolls", "Пушена сьомга с крем от сирене и печен сусам", "Smoked salmon with cheese cream and toasted sesame", 270, ["sea"]],
+      ["Трюфелов пастет", "Truffle spread", "", "", 120, []],
+      ["Домашен айвар с орехи и сирене", "Homemade ajvar with walnuts and cheese", "", "", 120, ["veg"]],
+      ["Трио разядки", "Trio of spreads", "Крема сирене, рокфор, орехи, пресен лук, печена чушка, чесън, копър, сос Уорчестър", "Cream cheese, Roquefort, walnuts, spring onion, roasted pepper, garlic, dill, Worcestershire sauce", 150, []],
+      ["Пикантна разядка от чушки", "Spicy pepper spread", "Люти чушки, сирене, панчета, трюфелов пастет, айвар със сирене, хрупкав хляб", "Spicy peppers, cheese, pancetta, truffle spread, ajvar with cheese, crispy bread", 180, []],
+      ["Биволско сирене в хрупкаво тесто", "Buffalo cheese with crispy pastry", "Биволско сирене, хрупкаво тесто, мус от сирене, домашно сладко", "Buffalo cheese, crispy pastry, cheese mousse, homemade jam", 200, ["veg"]],
+      ["Хрупкави тиквички", "Crispy zucchini", "", "", 250, ["veg"]],
+      ["Тартар от Black Angus", "Black Angus tartare", "", "", 150, []],
+      ["Охлюви с пресен лук и масло", "Escargots with spring onion and butter", "", "", 120, []],
+      ["Карпачо от зряло телешко филе", "Aged beef tenderloin carpaccio", "Телешко филе, рукола, пармезан, редукция, сол Малдон, зехтин", "Beef tenderloin, arugula, parmesan, reduction, Maldon salt, olive oil", 150, []],
+      ["Пресен хляб с ароматни билки", "Freshly baked bread with aromatic herbs", "", "", 300, ["veg"]],
+      ["Филия пресен хляб", "Slice of freshly baked bread", "", "", 100, ["veg"]]
+    ]},
+    { id: "sea", bg: "Риба и морски дарове", en: "Fish & seafood", items: [
+      ["Риба на деня", "Fish of the day", "", "", 300, ["sea"], "catch"],
+      ["Филе от лаврак", "Sea bass fillet", "Лаврак, каперси, сушени домати, маслини, ризото от лимец", "Sea bass, capers, sun-dried tomatoes, olives, spelt risotto", 350, ["sea"]],
+      ["Лаврак", "Sea bass", "", "", 350, ["sea"]],
+      ["Миди в чеснов сос", "Mussels in garlic sauce", "", "", 500, ["sea"]],
+      ["Скариди с чесново масло", "Shrimp with garlic butter", "", "", 150, ["sea"]],
+      ["Калмари на скара с чеснов дресинг", "Grilled calamari with garlic dressing", "Калмари, зехтин, копър, лимон, чесън", "Calamari, olive oil, dill, lemon, garlic", 180, ["sea"]],
+      ["Бейби калмари със сладко чили", "Baby calamari with sweet chili", "Панирани бейби калмари, сусам, сос сладко чили", "Breaded baby calamari, sesame, sweet chili sauce", 180, ["sea"]],
+      ["Бейби калмари с рокфор и риган", "Baby calamari with Roquefort and oregano", "", "", 180, ["sea"]],
+      ["Октопод", "Octopus", "", "", 130, ["sea"]]
+    ]},
+    { id: "specials", bg: "Специалитети", en: "Specialties", items: [
+      ["Хапки телешко филе с трюфелово пюре", "Beef tenderloin pieces with truffle mashed potatoes", "", "", 350, []],
+      ["Патешки магрет с фоа гра", "Duck magret with foie gras", "Патешки магрет, фоа гра, глазирана ябълка, конфитюр от вишни", "Duck magret, foie gras, glazed apple, sour cherry confit", 300, []],
+      ["Свински медальони с рагу от манатарки", "Pork tenderloin medallions with porcini ragout", "Свинско филе, рагу от манатарки, ризото от лимец", "Pork tenderloin, porcini ragout, spelt risotto", 380, []],
+      ["Домашни телешки кюфтенца с хрупкави картофи", "Homemade beef meatballs with crispy potatoes", "Телешки кюфтенца, хрупкави картофи, мисо масло", "Beef meatballs, crispy potatoes, miso butter", 400, []],
+      ["Домашна наденица с хрупкави картофи", "Homemade sausage with crispy potatoes", "Наденица, хрупкави картофи, мисо масло, лютеница", "Sausage, crispy potatoes, miso butter, lyutenitsa", 180, []]
+    ]},
+    { id: "grill", bg: "На жар", en: "Charcoal grill", items: [
+      ["Свинска панчета със зеленчуци", "Pork pancetta with vegetables", "С мисо масло", "With miso butter", 400, []],
+      ["Свинска пържола с хрупкави картофи", "Pork chop with crispy potatoes", "С мисо масло", "With miso butter", 450, []],
+      ["Свински вратни пържоли със зеленчуци", "Pork neck steaks with vegetables", "С мисо масло", "With miso butter", 250, []],
+      ["Свински ребра с хрупкави картофи", "Pork ribs with crispy potatoes", "С мисо масло", "With miso butter", 400, []],
+      ["Супреме от царевично пиле с печени зеленчуци", "Corn-fed chicken supreme with roasted vegetables", "", "", 380, []]
+    ]},
+    { id: "aged", bg: "Сухо зряло телешко", en: "Dry-aged beef", note: { bg: "Естествено зряло 50 дни.", en: "Naturally dry-aged for 50 days." }, items: [
+      ["Стриплойн стек", "Striploin steak", "", "", 400, ["aged"]],
+      ["Денвър стек", "Denver steak", "", "", 250, ["aged"]],
+      ["Чък стек", "Chuck steak", "", "", 250, ["aged"]],
+      ["Рибай", "Ribeye roll steak", "", "", 350, ["aged"]],
+      ["Т-боун стек", "T-bone steak", "", "", 550, ["aged"]],
+      ["Портърхаус стек", "Porterhouse steak", "", "", 650, ["aged"]]
+    ]},
+    { id: "sides", bg: "Гарнитури", en: "Sides", items: [
+      ["Зеленчуци на скара", "Grilled vegetables", "Тиквички, моркови, пресни чушки, лук, подправки", "Zucchini, carrots, fresh pepper, onion, spices", 250, ["veg"]],
+      ["Пържени картофи", "French fries", "", "", 150, ["veg"]],
+      ["Хрупкави сладки картофи", "Crispy sweet potato fries", "", "", 200, ["veg"]],
+      ["Ризото от лимец", "Spelt risotto", "", "", 250, ["veg"]],
+      ["Броколи", "Broccoli", "", "", 150, ["veg"]]
+    ]},
+    { id: "cold", bg: "Студени мезета", en: "Cold cuts & cheese", items: [
+      ["Домашно маринован паламуд", "Homemade marinated bonito", "Паламуд, червен лук, лимон", "Bonito, red onion, lemon", 100, ["sea"]],
+      ["Селекция сушени меса", "Selection of cured meats", "", "", 100, []],
+      ["Плато сирена", "Cheese platter", "Сирена, гризини, домашно сладко", "Cheese, grissini, homemade jam", 250, ["veg"]]
+    ]},
+    { id: "desserts", bg: "Десерти", en: "Desserts", items: [
+      ["Шоколадов десерт Lindt", "Lindt chocolate dessert", "Бисквити, шоколад, сироп от мента", "Biscuits, chocolate, mint syrup", 150, []],
+      ["Кокосов кейк с праскови", "Coconut cake with peaches", "Кокосов блат, бял шоколад, сметана, заквасена сметана, праскови", "Coconut sponge, white chocolate, cream, sour cream, peaches", 150, []],
+      ["Чийзкейк Biscoff", "Biscoff cheesecake", "Бисквити, маскарпоне, крема сирене, карамел, шоколад, кадаиф", "Biscuits, mascarpone, cream cheese, caramel, chocolate, kataifi", 150, []],
+      ["Чийзкейк със солен карамел", "Salted caramel cheesecake", "Бисквити, солен карамел, лешници, маскарпоне, шоколад", "Biscuits, salted caramel, hazelnuts, mascarpone, chocolate", 150, []],
+      ["Семифредо Кремонезе", "Cremonese semifreddo", "Сладолед, карамелизирани лешници, сладко от смокини, зелени орехи", "Ice cream, caramelized hazelnuts, fig jam, green walnuts", 150, []],
+      ["Малинова торта с бял шоколад и Nutella", "Raspberry cake with white chocolate and Nutella", "", "", 150, []]
+    ]}
+  ];
+
+  var FILTERS = ["all", "sea", "veg", "aged"];
+  var state = { lang: "bg", filter: "all", q: "" };
+  try { var saved = localStorage.getItem("olea-lang"); if (saved === "en" || saved === "bg") state.lang = saved; } catch (e) {}
+
+  var $ = function (id) { return document.getElementById(id); };
+  var esc = function (s) { return String(s).replace(/[&<>"]/g, function (c) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]; }); };
+  var norm = function (s) { return String(s).toLowerCase(); };
+
+  function t(k) { return UI[state.lang][k]; }
+
+  function renderStatic() {
+    document.documentElement.lang = state.lang;
+    $("t-demo").textContent = t("demo");
+    $("t-ribbon").textContent = t("ribbon");
+    $("t-eyebrow").textContent = t("eyebrow");
+    $("t-name").textContent = t("name");
+    $("t-card-name").textContent = t("name");
+    $("t-lede").textContent = t("lede");
+    $("q").placeholder = t("search");
+    $("q").setAttribute("aria-label", t("search"));
+    $("t-qr").textContent = t("qr");
+    $("t-owner-h").textContent = t("ownerH");
+    $("owner-list").innerHTML = t("owner").map(function (o) {
+      return "<li><p><strong>" + esc(o[0]) + "</strong>" + esc(o[1]) + "</p></li>";
+    }).join("");
+    $("t-sig").innerHTML = esc(t("sig")) + "<span>ivo2005kolev@gmail.com</span>";
+    $("t-card-eyebrow").textContent = t("cardEyebrow");
+    $("t-scan").textContent = t("scan");
+    $("qr-close").textContent = t("close");
+    $("lang-bg").setAttribute("aria-pressed", String(state.lang === "bg"));
+    $("lang-en").setAttribute("aria-pressed", String(state.lang === "en"));
+    $("chips").innerHTML = FILTERS.map(function (f) {
+      return '<button type="button" class="chip" id="f-' + f + '" data-f="' + f + '" aria-pressed="' + (state.filter === f) + '">' + esc(t(f)) + "</button>";
+    }).join("");
+  }
+
+  function matches(it) {
+    var tags = it[5];
+    if (state.filter !== "all" && tags.indexOf(state.filter) < 0) return false;
+    if (!state.q) return true;
+    var hay = norm([it[0], it[1], it[2], it[3]].join(" "));
+    return hay.indexOf(norm(state.q)) >= 0;
+  }
+
+  function renderMenu() {
+    var L = state.lang, i = L === "bg" ? 0 : 1, d = L === "bg" ? 2 : 3;
+    var html = "", tabs = "";
+    MENU.forEach(function (sec) {
+      var items = sec.items.filter(matches);
+      if (!items.length) return;
+      tabs += '<li><a href="#' + sec.id + '" data-sec="' + sec.id + '">' + esc(sec[L]) + "</a></li>";
+      html += '<section class="course" id="' + sec.id + '"><h2>' + esc(sec[L]) + "</h2>";
+      if (sec.note) html += '<p class="note">' + esc(sec.note[L]) + "</p>";
+      html += '<div class="dishes">';
+      items.forEach(function (it) {
+        var tags = it[5].map(function (tg) {
+          var label = tg === "sea" ? t("tagSea") : tg === "veg" ? t("tagVeg") : t("tagAged");
+          return '<span class="tag ' + tg + '">' + esc(label) + "</span>";
+        }).join("");
+        html += '<article class="dish"><div class="row"><h3>' + esc(it[i]) + '</h3><span class="leader" aria-hidden="true"></span>' +
+          '<span class="meta"><span class="grams">' + it[4] + esc(t("grams")) + '</span><span class="price" title="">€&nbsp;–</span></span></div>' +
+          (it[d] ? '<p class="desc">' + esc(it[d]) + "</p>" : "") +
+          (it[6] === "catch" ? '<p class="desc callout">' + esc(t("catch")) + "</p>" : "") +
+          (tags ? '<div class="tags">' + tags + "</div>" : "") + "</article>";
+      });
+      html += "</div></section>";
+    });
+    if (!html) html = '<p class="empty">' + esc(t("empty").replace("{q}", state.q)) + "</p>";
+    $("menu").innerHTML = html;
+    $("tabs").innerHTML = tabs;
+    spy();
+  }
+
+  function spy() {
+    var secs = Array.prototype.slice.call(document.querySelectorAll(".course"));
+    var y = window.scrollY + 120, cur = secs.length ? secs[0].id : "";
+    secs.forEach(function (s) { if (s.offsetTop <= y) cur = s.id; });
+    Array.prototype.forEach.call(document.querySelectorAll(".tabs a"), function (a) {
+      var on = a.getAttribute("data-sec") === cur;
+      a.setAttribute("aria-current", String(on));
+      if (on && a.scrollIntoView && a.parentNode && a.parentNode.parentNode) {
+        var box = a.closest(".tabs-scroll"), r = a.getBoundingClientRect(), b = box.getBoundingClientRect();
+        if (r.left < b.left || r.right > b.right) box.scrollLeft += r.left - b.left - 16;
+      }
+    });
+  }
+
+  function setLang(l) {
+    state.lang = l;
+    try { localStorage.setItem("olea-lang", l); } catch (e) {}
+    renderStatic(); renderMenu();
+  }
+
+  var qrMade = false;
+  function openQR() {
+    $("sheet").hidden = false;
+    var online = /^https?:$/.test(location.protocol);
+    $("t-card-small").textContent = online ? t("cardSmall") : t("cardLocal");
+    if (!qrMade) {
+      var box = $("qr-box");
+      var url = location.href.split("#")[0];
+      if (online && window.QRCode) {
+        box.innerHTML = "";
+        new window.QRCode(box, { text: url, width: 172, height: 172, colorDark: "#1d2419", colorLight: "#ffffff", correctLevel: window.QRCode.CorrectLevel.M });
+        qrMade = true;
+      } else {
+        box.innerHTML = '<span class="qr-msg">' + esc(online ? "QR" : t("cardLocal")) + "</span>";
+      }
+    }
+    $("qr-close").focus();
+  }
+  function closeQR() { $("sheet").hidden = true; $("qr-open").focus(); }
+
+  document.addEventListener("click", function (e) {
+    var b = e.target.closest("[data-lang]");
+    if (b) { setLang(b.getAttribute("data-lang")); return; }
+    var f = e.target.closest("[data-f]");
+    if (f) { state.filter = f.getAttribute("data-f"); renderStatic(); renderMenu(); return; }
+    if (e.target.closest("#qr-open")) { openQR(); return; }
+    if (e.target.closest("#qr-close") || e.target === $("sheet")) { closeQR(); }
+  });
+  document.addEventListener("keydown", function (e) { if (e.key === "Escape" && !$("sheet").hidden) closeQR(); });
+  $("q").addEventListener("input", function (e) { state.q = e.target.value.trim(); renderMenu(); });
+  window.addEventListener("scroll", function () { window.requestAnimationFrame(spy); }, { passive: true });
+
+  renderStatic();
+  renderMenu();
+})();
+</script>
+</body>
+</html>
